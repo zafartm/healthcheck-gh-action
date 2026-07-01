@@ -2,16 +2,25 @@ import os
 import json
 import urllib.request
 import urllib.error
+import time
 
 def main():
     site_urls = os.environ.get("WEBSITE_URL", "").strip().split(",")
     webhook_url = os.environ.get("SLACK_WEBHOOK_URL")
+    state = get_previous_state()
+    if state is None:
+        state = {}
     for site_url in site_urls:
-        check_site(site_url, webhook_url)
+        status = check_site(site_url, webhook_url, state.get(site_url))
+        state.update({site_url: {
+            "status": status,
+            "ts": int(time.time()),
+        }})
     print(f"Done checking website urls: {site_urls}")
     print(f"{len(site_urls)} sites checked")
+    save_current_state(state)
 
-def check_site(site_url: str, slack_webhook_url: str):
+def check_site(site_url: str, slack_webhook_url: str, last_state: dict):
     error_msg = None
     try:
         # Send request with a standard User-Agent to avoid generic bot-blocking firewalls
@@ -38,6 +47,8 @@ def check_site(site_url: str, slack_webhook_url: str):
         print(f"❌ {error_msg}")
         send_slack_alert(slack_webhook_url, site_url, error_msg)
 
+    return status
+
 
 def send_slack_alert(webhook_url, site_url, error_message):
     payload = {
@@ -62,7 +73,8 @@ def get_state_file_name():
     if not workflow_name:
         print("Error: GITHUB_WORKFLOW env variable not set. Are you running in GitHub Actions?", file=sys.stderr)
         return None
-    state_file_name = f"{workflow_name}-state.json"
+    # state_file_name = f"{workflow_name}-state.json"
+    state_file_name = os.getenv("STATE_FILE_NAME")
     return state_file_name, workflow_name
 
 

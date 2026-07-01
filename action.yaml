@@ -20,11 +20,12 @@ runs:
       env:
         WEBSITE_URL: ${{ inputs.website-url }}
         SLACK_WEBHOOK_URL: ${{ inputs.slack-webhook-url }}
+        STATE_FILE_NAME: healthcheck-state.json
       run: python "${{ github.action_path }}/monitor.py"
       shell: bash
 
     - name: Upload state artifact
       uses: actions/upload-artifact@v7
       with:
-        name: ${{github.workflow}}-state
-        path: ${{github.workflow}}-state.json
+        name: healthcheck-state
+        path: healthcheck-state.json
