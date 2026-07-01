@@ -1,4 +1,6 @@
 import os
+import sys
+import subprocess
 import json
 import urllib.request
 import urllib.error
@@ -91,7 +93,7 @@ def get_previous_state():
         # gh run list --workflow="Workflow Name" --status=success --limit=1 --json=databaseId
         cmd_list = [
             "gh", "run", "list",
-            f"--workflow={workflow_name}",
+            f"--workflow='{workflow_name}'",
             "--status=success",
             "--limit=1",
             "--json=databaseId"
