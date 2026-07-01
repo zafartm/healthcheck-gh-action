@@ -1,0 +1,31 @@
+name: Slack Notifier if Website is down
+description: 'Checks a website URL and alerts Slack if it is down'
+inputs:
+  website-url:
+    description: 'The URL of the site to check'
+    required: true
+  slack-webhook-url:
+    description: 'The Slack Webhook URL where status change is to be posted'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Run Monitoring Script
+      shell: bash
+      env:
+        WEBSITE_URL: ${{ inputs.website-url }}
+        SLACK_WEBHOOK_URL: ${{ inputs.slack-webhook-url }}
+#      run: python ${{ github.action_path }}/monitor.py
+      run: python monitor.py
+
+    - name: Upload state artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{github.workflow}}-state
+        path: ${{github.workflow}}-state.json

@@ -3,14 +3,15 @@ import json
 import urllib.request
 import urllib.error
 
+
 def send_slack_alert(webhook_url, site_url, error_message):
     payload = {
         "text": f"🚨 *Healthcheck Alert:* Website <{site_url}> appears to be DOWN.\n*Reason:* {error_message}"
     }
     data = json.dumps(payload).encode('utf-8')
     req = urllib.request.Request(
-        webhook_url, 
-        data=data, 
+        webhook_url,
+        data=data,
         headers={'Content-Type': 'application/json'}
     )
     try:
@@ -20,10 +21,11 @@ def send_slack_alert(webhook_url, site_url, error_message):
     except Exception as e:
         print(f"Error connecting to Slack Webhook: {e}")
 
+
 def check_site():
     site_url = os.environ.get("MONITORED_URL")
     webhook_url = os.environ.get("SLACK_WEBHOOK_URL")
-    
+
     if not site_url or not webhook_url:
         print("Missing required environment variables.")
         exit(1)
@@ -31,7 +33,7 @@ def check_site():
     try:
         # Send request with a standard User-Agent to avoid generic bot-blocking firewalls
         req = urllib.request.Request(
-            site_url, 
+            site_url,
             headers={'User-Agent': 'GitHub-Actions-Healthcheck-Monitor/1.0'}
         )
         # 10-second timeout ensures the script catches a frozen or hanging server
@@ -42,7 +44,7 @@ def check_site():
                 exit(0)
             else:
                 error_msg = f"Returned unexpected HTTP Status Code {status}"
-    
+
     except urllib.error.HTTPError as e:
         error_msg = f"HTTP Error {e.code}: {e.reason}"
     except urllib.error.URLError as e:
@@ -52,7 +54,80 @@ def check_site():
 
     print(f"❌ {error_msg}")
     send_slack_alert(webhook_url, site_url, error_msg)
-    exit(1) # Mark the GitHub Action job as failed
+    exit(1)  # Mark the GitHub Action job as failed
+
+
+def get_state_file_name():
+    workflow_name = os.getenv("GITHUB_WORKFLOW")
+    if not workflow_name:
+        print("Error: GITHUB_WORKFLOW env variable not set. Are you running in GitHub Actions?", file=sys.stderr)
+        return None
+    state_file_name = f"{workflow_name}-state.json"
+    return state_file_name, workflow_name
+
+
+def get_previous_state():
+    """
+    Finds the last successful workflow run using 'gh run list',
+    downloads state artifact, and returns its contents as a dict.
+    Returns None if no previous state exists.
+    """
+    # 1. Get the current workflow name from GitHub environment variables
+    state_file_name, workflow_name = get_state_file_name()
+    try:
+        # Query using gh cli for the last successful run ID of this specific workflow
+        # gh run list --workflow="Workflow Name" --status=success --limit=1 --json=databaseId
+        cmd_list = [
+            "gh", "run", "list",
+            f"--workflow={workflow_name}",
+            "--status=success",
+            "--limit=1",
+            "--json=databaseId"
+        ]
+
+        result = subprocess.run(cmd_list, capture_output=True, text=True, check=True)
+        runs_data = json.loads(result.stdout)
+
+        if not runs_data:
+            print("No previous successful workflow runs found. Starting fresh.")
+            return None
+
+        last_run_id = str(runs_data[0]["databaseId"])
+        print(f"Found last successful run ID: {last_run_id}")
+
+        cmd_download = [
+            "gh", "run", "download", last_run_id, "--name", state_file_name
+        ]
+
+        # We catch the error here in case the run was successful but had no artifact
+        download_result = subprocess.run(cmd_download, capture_output=True, text=True)
+
+        if download_result.returncode != 0:
+            print(f"No state artifact found for run ID {last_run_id}. Starting fresh.")
+            return None
+        else:
+            with open(state_file_name, "r") as f:
+                return json.load(f)
+
+    except Exception as e:
+        print(f"Error: {e.stderr}", file=sys.stderr)
+        return None
+
+
+def save_current_state(state: dict):
+    """
+    Saves the dictionary locally to the state file in json format.
+    The actual artifact uploading step must be done in your YAML file
+    using actions/upload-artifact, as 'gh' CLI cannot upload new run artifacts natively.
+    """
+    try:
+        state_file_name, workflow_name = get_state_file_name()
+        with open(state_file_name, "w") as f:
+            json.dump(state, f, indent=2)
+        print(f"Successfully saved updated state locally to {state_file_name}")
+    except Exception as e:
+        print(f"Error saving state to file: {e}")
+
 
 if __name__ == "__main__":
     check_site()
