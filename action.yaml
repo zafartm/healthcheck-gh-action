@@ -17,12 +17,11 @@ runs:
         python-version: '3.12'
 
     - name: Run Monitoring Script
-      shell: bash
       env:
         WEBSITE_URL: ${{ inputs.website-url }}
         SLACK_WEBHOOK_URL: ${{ inputs.slack-webhook-url }}
-#      run: python ${{ github.action_path }}/monitor.py
-      run: python monitor.py
+      run: python "${{ github.action_path }}/monitor.py"
+      shell: bash
 
     - name: Upload state artifact
       uses: actions/upload-artifact@v4
