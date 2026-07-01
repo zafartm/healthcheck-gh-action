@@ -24,6 +24,7 @@ def main():
 
 def check_site(site_url: str, slack_webhook_url: str, last_state: dict):
     error_msg = None
+    status = None
     try:
         # Send request with a standard User-Agent to avoid generic bot-blocking firewalls
         req = urllib.request.Request(
