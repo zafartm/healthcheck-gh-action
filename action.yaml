@@ -2,7 +2,7 @@ name: Slack Notifier if Website is down
 description: 'Checks a website URL and alerts Slack if it is down'
 inputs:
   website-url:
-    description: 'The URL of the site to check'
+    description: 'The URL of the site to check. If multiple urls to be checked, separate them using comma.'
     required: true
   slack-webhook-url:
     description: 'The Slack Webhook URL where status change is to be posted'
@@ -12,7 +12,7 @@ runs:
   using: 'composite'
   steps:
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: '3.12'
 
@@ -24,7 +24,7 @@ runs:
       shell: bash
 
     - name: Upload state artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{github.workflow}}-state
         path: ${{github.workflow}}-state.json
