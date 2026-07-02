@@ -18,19 +18,22 @@ class ActionEnv:
 
 def main():
     site_urls = os.environ.get("WEBSITE_URL", "").strip().split(",")
-    state = get_previous_state()
-    print(f"Last saved state: {state}")
-    if state is None:
-        state = {}
+    last_state = get_previous_state()
+    print(f"Last saved state: {last_state}")
+    if last_state is None:
+        last_state = {}
+    new_state = {}
     for site_url in site_urls:
-        status = check_site(site_url, state.get(site_url))
-        state.update({site_url: {
-            "status": status,
-            "ts": int(time.time()),
-        }})
+        status = check_site(site_url, last_state.get(site_url))
+        new_state.update({
+            site_url: {
+                "status": status,
+                "ts": int(time.time()),
+            }
+        })
     print(f"Done checking website urls: {site_urls}")
     print(f"{len(site_urls)} sites checked")
-    save_current_state(state)
+    save_current_state(new_state)
 
 
 def check_site(site_url: str, last_state: dict):
