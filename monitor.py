@@ -127,7 +127,10 @@ def get_previous_state():
         print(f"Found last successful run ID: {last_run_id}")
 
         cmd_download = [
-            "gh", "run", "download", last_run_id, "--name", state_file_name
+            "gh", "run", "download",
+            last_run_id,
+            "--name", state_file_name,
+            "--repo='$GITHUB_REPOSITORY'"
         ]
 
         # We catch the error here in case the run was successful but had no artifact
