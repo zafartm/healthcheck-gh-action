@@ -88,7 +88,7 @@ def send_slack_alert(message: str):
 
 
 def get_env():
-    repo_name = os.environ.get("GITHUB_REPOSITORY")
+    repo_name = f"{os.environ.get('GITHUB_SERVER_URL')}/{os.environ.get('GITHUB_REPOSITORY')}"
     workflow_name = os.getenv("GITHUB_WORKFLOW")
     if not workflow_name:
         print("Error: GITHUB_WORKFLOW env variable not set. Are you running in GitHub Actions?", file=sys.stderr)
