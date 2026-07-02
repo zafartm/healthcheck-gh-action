@@ -109,6 +109,7 @@ def get_previous_state():
         # gh run list --workflow="Workflow Name" --status=success --limit=1 --json=databaseId
         cmd_list = [
             "gh", "run", "list",
+            "--repo='$GITHUB_REPOSITORY'",
             f"--workflow='{workflow_name}'",
             "--status=success",
             "--limit=1",
