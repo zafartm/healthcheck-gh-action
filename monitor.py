@@ -113,7 +113,7 @@ def get_previous_state():
             "--repo", repo_name,
             "--workflow", workflow_name,
             "--status", "success",
-            "--limit", 1,
+            "--limit", "1",
             "--json", "databaseId",
         ]
         print(" ".join(cmd_list))
