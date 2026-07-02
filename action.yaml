@@ -24,7 +24,7 @@ runs:
       env:
         WEBSITE_URL: ${{ inputs.website-url }}
         SLACK_WEBHOOK_URL: ${{ inputs.slack-webhook-url }}
-        STATE_FILE_NAME: healthcheck-state.json
+        STATE_ARTIFACT_NAME: healthcheck-state
         GH_TOKEN: ${{ github.token }}
       run: python "${{ github.action_path }}/monitor.py"
       shell: bash

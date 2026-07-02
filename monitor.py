@@ -7,6 +7,15 @@ import urllib.error
 import time
 
 
+class ActionEnv:
+    repo_name = os.environ.get('GITHUB_REPOSITORY')
+    # repo_name = f"{os.environ.get('GITHUB_SERVER_URL')}/{os.environ.get('GITHUB_REPOSITORY')}"
+    workflow_name = os.getenv("GITHUB_WORKFLOW")
+    state_artifact_name = os.getenv('STATE_ARTIFACT_NAME')
+    state_file_name = f"{state_artifact_name}.json"
+    last_state_full_path = f"{state_artifact_name}/{state_file_name}"
+
+
 def main():
     site_urls = os.environ.get("WEBSITE_URL", "").strip().split(",")
     state = get_previous_state()
@@ -87,31 +96,19 @@ def send_slack_alert(message: str):
         print(f"Error connecting to Slack Webhook: {e}")
 
 
-def get_env():
-    repo_name = os.environ.get('GITHUB_REPOSITORY')
-    # repo_name = f"{os.environ.get('GITHUB_SERVER_URL')}/{os.environ.get('GITHUB_REPOSITORY')}"
-    workflow_name = os.getenv("GITHUB_WORKFLOW")
-    if not workflow_name:
-        print("Error: GITHUB_WORKFLOW env variable not set. Are you running in GitHub Actions?", file=sys.stderr)
-    state_file_name = os.getenv("STATE_FILE_NAME")
-    return state_file_name, workflow_name, repo_name
-
-
 def get_previous_state():
     """
     Finds the last successful workflow run using 'gh run list',
     downloads state artifact, and returns its contents as a dict.
     Returns None if no previous state exists.
     """
-    # 1. Get the current workflow name from GitHub environment variables
-    state_file_name, workflow_name, repo_name = get_env()
     try:
         # Query using gh cli for the last successful run ID of this specific workflow
         # gh run list --workflow="Workflow Name" --status=success --limit=1 --json=databaseId
         cmd_list = [
             "gh", "run", "list",
-            "--repo", repo_name,
-            "--workflow", workflow_name,
+            "--repo", ActionEnv.repo_name,
+            "--workflow", ActionEnv.workflow_name,
             "--status", "success",
             "--limit", "1",
             "--json", "databaseId",
@@ -131,7 +128,6 @@ def get_previous_state():
         cmd_download = [
             "gh", "run", "download",
             last_run_id,
-            "--name", state_file_name,
             "--repo", repo_name,
         ]
 
@@ -144,7 +140,7 @@ def get_previous_state():
             print(f"No state artifact found for run ID {last_run_id}. Starting fresh.")
             return None
         else:
-            with open(state_file_name, "r") as f:
+            with open(ActionEnv.last_state_full_path, "r") as f:
                 return json.load(f)
 
     except Exception as e:
@@ -159,10 +155,9 @@ def save_current_state(state: dict):
     using actions/upload-artifact, as 'gh' CLI cannot upload new run artifacts natively.
     """
     try:
-        state_file_name, _, _ = get_env()
-        with open(state_file_name, "w") as f:
+        with open(ActionEnv.state_file_name, "w") as f:
             json.dump(state, f, indent=2)
-        print(f"Successfully saved updated state locally to {state_file_name}")
+        print(f"Successfully saved updated state locally to {ActionEnv.state_file_name}")
     except Exception as e:
         print(f"Error saving state to file: {e}")
 
