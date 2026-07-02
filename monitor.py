@@ -109,7 +109,7 @@ def get_previous_state():
         # gh run list --workflow="Workflow Name" --status=success --limit=1 --json=databaseId
         cmd_list = [
             "gh", "run", "list",
-            f"--repo='{repo_name}'",
+            f"--repo={repo_name}",
             f"--workflow='{workflow_name}'",
             "--status=success",
             "--limit=1",
@@ -130,7 +130,7 @@ def get_previous_state():
             "gh", "run", "download",
             last_run_id,
             "--name", state_file_name,
-            f"--repo='{repo_name}'",
+            f"--repo={repo_name}",
         ]
 
         # We catch the error here in case the run was successful but had no artifact
