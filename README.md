@@ -55,7 +55,9 @@ If cron expression in the schedule is defined correctly, GitHub should start rep
 
 ---
 ### Extra notes
-Though it is recommended to create the healthcheck workflow in the same GitHub repo where source code of the target server is hosted, but, it is not a strict requirement.
-You may create the workflow in any GitHub repo you want and start monitoring any other website. 
+While it is recommended to create the healthcheck workflow in the same repository where the target website's source code lies, this is not a strict requirement.
+You may create the workflow in any GitHub repo you want and start monitoring any other website.
 
-It is also possible to monitor multiple webpages in a single workflow. To do so, provide a comma separated list of urls as value to `website-url` property.
+It is also possible to monitor multiple webpages in a single workflow. To do so, provide a comma separated list of URLs as value to the `website-url` property. The action will report on each URL individually.
+
+The action keeps track of its last execution by saving data in the workflow artifacts. It utilizes GH cli tool to get this done. The permissions block in the example above is needed to allow the GH cli to do its job.    
