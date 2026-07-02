@@ -71,7 +71,7 @@ def check_site(site_url: str, last_state: dict):
 
 
 def send_slack_success(site_url):
-    message = f"*Healthcheck Alert:* Website <{site_url}> is ONLINE now."
+    message = f"✅ *Healthcheck Alert:* Website <{site_url}> is ONLINE now."
     send_slack_alert(message)
 
 

@@ -16,10 +16,6 @@ runs:
       with:
         python-version: '3.12'
 
-    - name: Dump env for debugging
-      run: env
-      shell: bash
-
     - name: Run Monitoring Script
       env:
         WEBSITE_URL: ${{ inputs.website-url }}
