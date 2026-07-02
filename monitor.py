@@ -14,7 +14,7 @@ def main():
     if state is None:
         state = {}
     for site_url in site_urls:
-        status = check_site(site_url, webhook_url, state.get(site_url))
+        status = check_site(site_url, state.get(site_url))
         state.update({site_url: {
             "status": status,
             "ts": int(time.time()),
@@ -91,7 +91,6 @@ def get_state_file_name():
     workflow_name = os.getenv("GITHUB_WORKFLOW")
     if not workflow_name:
         print("Error: GITHUB_WORKFLOW env variable not set. Are you running in GitHub Actions?", file=sys.stderr)
-        return None
     # state_file_name = f"{workflow_name}-state.json"
     state_file_name = os.getenv("STATE_FILE_NAME")
     return state_file_name, workflow_name
