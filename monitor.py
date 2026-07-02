@@ -93,7 +93,7 @@ def get_env():
     if not workflow_name:
         print("Error: GITHUB_WORKFLOW env variable not set. Are you running in GitHub Actions?", file=sys.stderr)
     state_file_name = os.getenv("STATE_FILE_NAME")
-    return state_file_name, workflow_name
+    return state_file_name, workflow_name, repo_name
 
 
 def get_previous_state():
@@ -155,7 +155,7 @@ def save_current_state(state: dict):
     using actions/upload-artifact, as 'gh' CLI cannot upload new run artifacts natively.
     """
     try:
-        state_file_name, workflow_name = get_env()
+        state_file_name, _, _ = get_env()
         with open(state_file_name, "w") as f:
             json.dump(state, f, indent=2)
         print(f"Successfully saved updated state locally to {state_file_name}")
