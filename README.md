@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Execute Healthcheck
-        uses: zafartm/healthcheck-gh-action@main
+        uses: zafartm/healthcheck-gh-action@v1
         with:
           website-url: "https://yahoo.com"
           slack-webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
