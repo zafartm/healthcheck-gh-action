@@ -53,7 +53,7 @@ def check_site(site_url: str, last_state: dict):
     if error_msg:
         print(f"❌ {error_msg}")
         if last_state is None or last_state.get("status") != status:
-            send_slack_errort(site_url, error_msg)
+            send_slack_error(site_url, error_msg)
 
     return status
 
