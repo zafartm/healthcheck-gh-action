@@ -6,10 +6,11 @@ import urllib.request
 import urllib.error
 import time
 
+
 def main():
     site_urls = os.environ.get("WEBSITE_URL", "").strip().split(",")
-    webhook_url = os.environ.get("SLACK_WEBHOOK_URL")
     state = get_previous_state()
+    print(f"Last saved state: {state}")
     if state is None:
         state = {}
     for site_url in site_urls:
@@ -22,7 +23,8 @@ def main():
     print(f"{len(site_urls)} sites checked")
     save_current_state(state)
 
-def check_site(site_url: str, slack_webhook_url: str, last_state: dict):
+
+def check_site(site_url: str, last_state: dict):
     error_msg = None
     status = None
     try:
@@ -36,6 +38,8 @@ def check_site(site_url: str, slack_webhook_url: str, last_state: dict):
             status = response.status
             if status == 200:
                 print(f"✅ Success! {site_url} is up and running (HTTP 200).")
+                if last_state and last_state.get("status") != 200:
+                    send_slack_success(site_url)
             else:
                 error_msg = f"Returned unexpected HTTP Status Code {status}"
 
@@ -48,14 +52,26 @@ def check_site(site_url: str, slack_webhook_url: str, last_state: dict):
 
     if error_msg:
         print(f"❌ {error_msg}")
-        send_slack_alert(slack_webhook_url, site_url, error_msg)
+        if last_state is None or last_state.get("status") != status:
+            send_slack_errort(site_url, error_msg)
 
     return status
 
 
-def send_slack_alert(webhook_url, site_url, error_message):
+def send_slack_success(site_url):
+    message = f"*Healthcheck Alert:* Website <{site_url}> is ONLINE now."
+    send_slack_alert(message)
+
+
+def send_slack_error(site_url, error_message):
+    message = f"🚨 *Healthcheck Alert:* Website <{site_url}> appears to be DOWN.\n*Reason:* {error_message}"
+    send_slack_alert(message)
+
+
+def send_slack_alert(message: str):
+    webhook_url = os.environ.get("SLACK_WEBHOOK_URL")
     payload = {
-        "text": f"🚨 *Healthcheck Alert:* Website <{site_url}> appears to be DOWN.\n*Reason:* {error_message}"
+        "text": message
     }
     data = json.dumps(payload).encode('utf-8')
     req = urllib.request.Request(
