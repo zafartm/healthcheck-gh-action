@@ -88,7 +88,8 @@ def send_slack_alert(message: str):
 
 
 def get_env():
-    repo_name = f"{os.environ.get('GITHUB_SERVER_URL')}/{os.environ.get('GITHUB_REPOSITORY')}"
+    repo_name = os.environ.get('GITHUB_REPOSITORY')
+    # repo_name = f"{os.environ.get('GITHUB_SERVER_URL')}/{os.environ.get('GITHUB_REPOSITORY')}"
     workflow_name = os.getenv("GITHUB_WORKFLOW")
     if not workflow_name:
         print("Error: GITHUB_WORKFLOW env variable not set. Are you running in GitHub Actions?", file=sys.stderr)
@@ -109,11 +110,11 @@ def get_previous_state():
         # gh run list --workflow="Workflow Name" --status=success --limit=1 --json=databaseId
         cmd_list = [
             "gh", "run", "list",
-            f"--repo={repo_name}",
-            f"--workflow='{workflow_name}'",
-            "--status=success",
-            "--limit=1",
-            "--json=databaseId",
+            "--repo", repo_name,
+            "--workflow", workflow_name,
+            "--status", "success",
+            "--limit", 1,
+            "--json", "databaseId",
         ]
         print(" ".join(cmd_list))
 
@@ -131,7 +132,7 @@ def get_previous_state():
             "gh", "run", "download",
             last_run_id,
             "--name", state_file_name,
-            f"--repo={repo_name}",
+            "--repo", repo_name,
         ]
 
         print(" ".join(cmd_download))
