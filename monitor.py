@@ -87,11 +87,11 @@ def send_slack_alert(message: str):
         print(f"Error connecting to Slack Webhook: {e}")
 
 
-def get_state_file_name():
+def get_env():
+    repo_name = os.environ.get("GITHUB_REPOSITORY")
     workflow_name = os.getenv("GITHUB_WORKFLOW")
     if not workflow_name:
         print("Error: GITHUB_WORKFLOW env variable not set. Are you running in GitHub Actions?", file=sys.stderr)
-    # state_file_name = f"{workflow_name}-state.json"
     state_file_name = os.getenv("STATE_FILE_NAME")
     return state_file_name, workflow_name
 
@@ -103,17 +103,17 @@ def get_previous_state():
     Returns None if no previous state exists.
     """
     # 1. Get the current workflow name from GitHub environment variables
-    state_file_name, workflow_name = get_state_file_name()
+    state_file_name, workflow_name, repo_name = get_env()
     try:
         # Query using gh cli for the last successful run ID of this specific workflow
         # gh run list --workflow="Workflow Name" --status=success --limit=1 --json=databaseId
         cmd_list = [
             "gh", "run", "list",
-            "--repo='$GITHUB_REPOSITORY'",
+            f"--repo='{repo_name}'",
             f"--workflow='{workflow_name}'",
             "--status=success",
             "--limit=1",
-            "--json=databaseId"
+            "--json=databaseId",
         ]
 
         result = subprocess.run(cmd_list, capture_output=True, text=True, check=True)
@@ -130,7 +130,7 @@ def get_previous_state():
             "gh", "run", "download",
             last_run_id,
             "--name", state_file_name,
-            "--repo='$GITHUB_REPOSITORY'"
+            f"--repo='{repo_name}'",
         ]
 
         # We catch the error here in case the run was successful but had no artifact
@@ -155,7 +155,7 @@ def save_current_state(state: dict):
     using actions/upload-artifact, as 'gh' CLI cannot upload new run artifacts natively.
     """
     try:
-        state_file_name, workflow_name = get_state_file_name()
+        state_file_name, workflow_name = get_env()
         with open(state_file_name, "w") as f:
             json.dump(state, f, indent=2)
         print(f"Successfully saved updated state locally to {state_file_name}")
