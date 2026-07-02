@@ -115,6 +115,7 @@ def get_previous_state():
             "--limit=1",
             "--json=databaseId",
         ]
+        print(" ".join(cmd_list))
 
         result = subprocess.run(cmd_list, capture_output=True, text=True, check=True)
         runs_data = json.loads(result.stdout)
@@ -132,6 +133,8 @@ def get_previous_state():
             "--name", state_file_name,
             f"--repo={repo_name}",
         ]
+
+        print(" ".join(cmd_download))
 
         # We catch the error here in case the run was successful but had no artifact
         download_result = subprocess.run(cmd_download, capture_output=True, text=True)
