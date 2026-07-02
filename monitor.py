@@ -128,7 +128,7 @@ def get_previous_state():
         cmd_download = [
             "gh", "run", "download",
             last_run_id,
-            "--repo", repo_name,
+            "--repo", ActionEnv.repo_name,
         ]
 
         print(" ".join(cmd_download))
@@ -144,7 +144,7 @@ def get_previous_state():
                 return json.load(f)
 
     except Exception as e:
-        print(f"Error: {e.stderr}", file=sys.stderr)
+        print(f"Error: {e}", file=sys.stderr)
         return None
 
 
