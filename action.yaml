@@ -1,4 +1,4 @@
-name: Slack Notifier if Website is down
+name: Notify slack if website is down
 description: 'Checks a website URL and alerts Slack if it is down'
 inputs:
   website-url:
